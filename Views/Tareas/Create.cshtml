@@ -1,0 +1,61 @@
+@model MantenimientoEstudiantes.Models.Tarea
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Crear Tarea</h1>
+
+<h4>Datos</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="IdEstudiante" class="control-label">Id Estudiante</label>
+                <select asp-for="IdEstudiante" class ="form-control" asp-items="ViewBag.IdEstudiante"></select>
+            </div>
+            <div class="form-group">
+                <label>Nombre del Estudiante</label>
+                <input type="text" id="NombreEstudiante" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+                <label asp-for="Descripcion" class="control-label"></label>
+                <input asp-for="Descripcion" class="form-control" />
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Calificacion" class="control-label"></label>
+                <input asp-for="Calificacion" class="form-control" />
+                <span asp-validation-for="Calificacion" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Crear" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Volver</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function () {
+            $("#IdEstudiante").change(function () {
+                var idEst = $(this).val();
+                if (idEst) {
+                    $.getJSON('/Tareas/GetNombreEstudiante', { idEstudiante: idEst }, function (data) {
+                        $("#NombreEstudiante").val(data);
+                    });
+                } else {
+                    $("#NombreEstudiante").val('');
+                }
+            });
+        });
+    </script>
+}

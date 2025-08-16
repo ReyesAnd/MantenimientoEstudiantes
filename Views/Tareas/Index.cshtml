@@ -1,0 +1,55 @@
+@model IEnumerable<MantenimientoEstudiantes.Models.Tarea>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Lista Tareas</h1>
+
+<p>
+    <a asp-action="Create">Nueva Tarea</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Descripcion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Calificacion)
+            </th>
+            @* <th>
+                @Html.DisplayNameFor(model => model.Estudiante)
+            </th> *@
+            <th>Matricula</th>
+            <th>Nombre</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Descripcion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Calificacion)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Estudiante.Matricula)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Estudiante.Nombre)
+            </td>
+            <td>
+                @* <a asp-action="Edit" asp-route-id="@item.IdTarea">Edit</a> | *@
+                @* <a asp-action="Details" asp-route-id="@item.IdTarea">Details</a> | *@
+                @* <a asp-action="Delete" asp-route-id="@item.IdTarea">Delete</a> *@
+                    <a asp-action="Edit" asp-route-id="@item.IdTarea" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-action="Details" asp-route-id="@item.IdTarea" class="btn btn-info btn-sm">Detalles</a>
+                    <a asp-action="Delete" asp-route-id="@item.IdTarea" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

@@ -1,78 +1,21 @@
-//using System.Diagnostics;
-//using MantenimientoEstudiantes.Models;
-//using Microsoft.AspNetCore.Mvc;
-
-//namespace MantenimientoEstudiantes.Controllers
-//{
-//    public class HomeController : Controller
-//    {
-//        private readonly ILogger<HomeController> _logger;
-
-//        public HomeController(ILogger<HomeController> logger)
-//        {
-//            _logger = logger;
-//        }
-
-//        public IActionResult Index()
-//        {
-//            return View();
-//        }
-
-//        public IActionResult Privacy()
-//        {
-//            return View();
-//        }
-
-//        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-//        public IActionResult Error()
-//        {
-//            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-//        }
-//    }
-//}
-
 using Microsoft.AspNetCore.Mvc;
 using MantenimientoEstudiantes.Data;
-using MantenimientoEstudiantes.Models;
-using System.Linq;
+using MantenimientoEstudiantes.Services;
 
 namespace MantenimientoEstudiantes.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly AplicacionDbContext _context;
+        private readonly IEstudiantesService _estudiantesService;
 
-        public HomeController(AplicacionDbContext context)
+        public HomeController(IEstudiantesService estudiantesService)
         {
-            _context = context;
+            _estudiantesService = estudiantesService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var estudiantesConNotas = _context.Estudiantes
-                .Select(e => new EstudianteViewModel
-                {
-                    Matricula = e.Matricula,
-                    Nombre = e.Nombre,
-                    Promedio = e.Tareas.Any()
-                        ? e.Tareas.Average(t => t.Calificacion)
-                        : 0,
-                })
-                .ToList();
-
-            // asignar literal
-            foreach (var est in estudiantesConNotas)
-            {
-                if (est.Promedio >= 90)
-                    est.Literal = "A";
-                else if (est.Promedio >= 80)
-                    est.Literal = "B";
-                else if (est.Promedio >= 70)
-                    est.Literal = "C";
-                else
-                    est.Literal = "F";
-            }
-
+            var estudiantesConNotas = await _estudiantesService.GetEstudiantesConPromedioAsync();
             return View(estudiantesConNotas);
         }
     }

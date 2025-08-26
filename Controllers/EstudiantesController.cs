@@ -1,158 +1,102 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using MantenimientoEstudiantes.Data;
 using MantenimientoEstudiantes.Models;
+using MantenimientoEstudiantes.Services; 
 
 namespace MantenimientoEstudiantes.Controllers
 {
     public class EstudiantesController : Controller
     {
-        private readonly AplicacionDbContext _context;
+        private readonly IEstudiantesService _estudiantesService;
 
-        public EstudiantesController(AplicacionDbContext context)
+        public EstudiantesController(IEstudiantesService estudiantesService)
         {
-            _context = context;
+            _estudiantesService = estudiantesService;
         }
 
-        // GET: Estudiantes
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Estudiantes.ToListAsync());
+            var estudiantes = await _estudiantesService.GetAllAsync();
+            return View(estudiantes);
         }
 
-        // GET: Estudiantes/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var estudiante = await _context.Estudiantes
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (estudiante == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
+            var estudiante = await _estudiantesService.GetByIdAsync(id.Value);
+            if (estudiante == null) return NotFound();
             return View(estudiante);
         }
 
-        // GET: Estudiantes/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Estudiantes/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Create([Bind("Id,Matricula,Nombre,FechaNacimiento")] Estudiante estudiante)
         public async Task<IActionResult> Create([Bind("Matricula,Nombre,FechaNacimiento")] Estudiante estudiante)
         {
+            if (await _estudiantesService.MatriculaExistsAsync(estudiante.Matricula))
+            {
+                ModelState.AddModelError("Matricula", "Esta matrícula ya existe.");
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(estudiante);
-                await _context.SaveChangesAsync();
+                await _estudiantesService.CreateAsync(estudiante);
                 return RedirectToAction(nameof(Index));
             }
             return View(estudiante);
         }
 
-        // GET: Estudiantes/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var estudiante = await _context.Estudiantes.FindAsync(id);
-            if (estudiante == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
+            var estudiante = await _estudiantesService.GetByIdAsync(id.Value);
+            if (estudiante == null) return NotFound();
             return View(estudiante);
         }
 
-        // POST: Estudiantes/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Matricula,Nombre,FechaNacimiento")] Estudiante estudiante)
         {
-            if (id != estudiante.Id)
+            if (id != estudiante.Id) return NotFound();
+
+            if (await _estudiantesService.MatriculaExistsAsync(estudiante.Matricula, estudiante.Id))
             {
-                return NotFound();
+                ModelState.AddModelError("Matricula", "Esta matrícula ya existe.");
             }
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(estudiante);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!EstudianteExists(estudiante.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _estudiantesService.UpdateAsync(estudiante);
                 return RedirectToAction(nameof(Index));
             }
             return View(estudiante);
         }
 
-        // GET: Estudiantes/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var estudiante = await _context.Estudiantes
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (estudiante == null)
-            {
-                return NotFound();
-            }
-
+            if (id == null) return NotFound();
+            var estudiante = await _estudiantesService.GetByIdAsync(id.Value);
+            if (estudiante == null) return NotFound();
             return View(estudiante);
         }
 
-        // POST: Estudiantes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var estudiante = await _context.Estudiantes.FindAsync(id);
-            if (estudiante != null)
-            {
-                _context.Estudiantes.Remove(estudiante);
-            }
-
-            await _context.SaveChangesAsync();
+            await _estudiantesService.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool EstudianteExists(int id)
+        [HttpGet]
+        public async Task<JsonResult> VerificarMatricula(string matricula)
         {
-            return _context.Estudiantes.Any(e => e.Id == id);
+            var existe = await _estudiantesService.MatriculaExistsAsync(matricula);
+            return Json(existe);
         }
     }
 }

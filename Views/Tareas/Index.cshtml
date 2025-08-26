@@ -18,9 +18,6 @@
             <th>
                 @Html.DisplayNameFor(model => model.Calificacion)
             </th>
-            @* <th>
-                @Html.DisplayNameFor(model => model.Estudiante)
-            </th> *@
             <th>Matricula</th>
             <th>Nombre</th>
             <th></th>
@@ -42,12 +39,9 @@
                 @Html.DisplayFor(modelItem => item.Estudiante.Nombre)
             </td>
             <td>
-                @* <a asp-action="Edit" asp-route-id="@item.IdTarea">Edit</a> | *@
-                @* <a asp-action="Details" asp-route-id="@item.IdTarea">Details</a> | *@
-                @* <a asp-action="Delete" asp-route-id="@item.IdTarea">Delete</a> *@
-                    <a asp-action="Edit" asp-route-id="@item.IdTarea" class="btn btn-warning btn-sm">Editar</a>
-                    <a asp-action="Details" asp-route-id="@item.IdTarea" class="btn btn-info btn-sm">Detalles</a>
-                    <a asp-action="Delete" asp-route-id="@item.IdTarea" class="btn btn-danger btn-sm">Eliminar</a>
+                    <a asp-action="Edit" asp-route-id="@item.IdTarea" class="btn btn-warning btn-sm" title="Editar"><i class="fa-solid fa-pencil"></i></a>
+                    <a asp-action="Details" asp-route-id="@item.IdTarea" class="btn btn-info btn-sm" title="Detalles"><i class="fa-solid fa-circle-info"></i></a>
+                    <a asp-action="Delete" asp-route-id="@item.IdTarea" class="btn btn-danger btn-sm" title="Eliminar"><i class="fa-solid fa-trash"></i></a>
             </td>
         </tr>
 }

@@ -15,6 +15,7 @@
             <div class="form-group">
                 <label asp-for="Matricula" class="control-label"></label>
                 <input asp-for="Matricula" class="form-control" />
+                <span id="errorMatricula" class="text-danger"></span>
                 <span asp-validation-for="Matricula" class="text-danger"></span>
             </div>
             <div class="form-group">
@@ -28,7 +29,7 @@
                 <span asp-validation-for="FechaNacimiento" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="Crear" class="btn btn-primary" />
+                <input id="btnGuardar" type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
@@ -39,5 +40,8 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script src="~/js/validaciones-estudiante.js"></script>
 }

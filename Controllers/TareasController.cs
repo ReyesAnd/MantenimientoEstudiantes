@@ -7,23 +7,25 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MantenimientoEstudiantes.Data;
 using MantenimientoEstudiantes.Models;
+using MantenimientoEstudiantes.Services;
 
 namespace MantenimientoEstudiantes.Controllers
 {
     public class TareasController : Controller
     {
-        private readonly AplicacionDbContext _context;
+        private readonly ITareasService _tareasService;
+        private readonly IEstudiantesService _estudiantesService;
 
-        public TareasController(AplicacionDbContext context)
+        public TareasController(ITareasService tareasService, IEstudiantesService estudiantesService)
         {
-            _context = context;
+            _tareasService = tareasService;
+            _estudiantesService = estudiantesService;
         }
 
         // GET: Tareas
         public async Task<IActionResult> Index()
         {
-            var aplicacionDbContext = _context.Tareas.Include(t => t.Estudiante);
-            return View(await aplicacionDbContext.ToListAsync());
+            return View(await _tareasService.GetAllConEstudianteAsync());
         }
 
         // GET: Tareas/Details/5
@@ -34,21 +36,14 @@ namespace MantenimientoEstudiantes.Controllers
                 return NotFound();
             }
 
-            var tarea = await _context.Tareas
-                .Include(t => t.Estudiante)
-                .FirstOrDefaultAsync(m => m.IdTarea == id);
-            if (tarea == null)
-            {
-                return NotFound();
-            }
-
-            return View(tarea);
+            ViewData["IdEstudiante"] = new SelectList(await _estudiantesService.GetAllAsync(), "Id", "Matricula");
+            return View();
         }
 
         // GET: Tareas/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["IdEstudiante"] = new SelectList(_context.Estudiantes, "Id", "Matricula");
+            ViewData["IdEstudiante"] = new SelectList(await _estudiantesService.GetAllAsync(), "Id", "Matricula");
             return View();
         }
 
@@ -62,23 +57,18 @@ namespace MantenimientoEstudiantes.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(tarea);
-                await _context.SaveChangesAsync();
+                await _tareasService.CreateAsync(tarea);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdEstudiante"] = new SelectList(_context.Estudiantes, "Id", "Matricula", tarea.IdEstudiante);
+            ViewData["IdEstudiante"] = new SelectList(await _estudiantesService.GetAllAsync(), "Id", "Matricula", tarea.IdEstudiante);
             return View(tarea);
         }
 
         [HttpGet]
-        public JsonResult GetNombreEstudiante(int idEstudiante)
+        public async Task<JsonResult> GetNombreEstudiante(int idEstudiante)
         {
-            var estudiante = _context.Estudiantes
-                .Where(e => e.Id == idEstudiante)
-                .Select(e => e.Nombre)
-                .FirstOrDefault();
-
-            return Json(estudiante);
+            var nombre = await _tareasService.GetNombreEstudianteAsync(idEstudiante);
+            return Json(nombre);
         }
 
         // GET: Tareas/Edit/5
@@ -89,12 +79,14 @@ namespace MantenimientoEstudiantes.Controllers
                 return NotFound();
             }
 
-            var tarea = await _context.Tareas.FindAsync(id);
+            var tarea = await _tareasService.GetByIdAsync(id.Value);
+
             if (tarea == null)
             {
                 return NotFound();
             }
-            ViewData["IdEstudiante"] = new SelectList(_context.Estudiantes, "Id", "Matricula", tarea.IdEstudiante);
+            ViewData["IdEstudiante"] = new SelectList(await _estudiantesService.GetAllAsync(), "Id", "Matricula", tarea.IdEstudiante);
+
             return View(tarea);
         }
 
@@ -114,12 +106,12 @@ namespace MantenimientoEstudiantes.Controllers
             {
                 try
                 {
-                    _context.Update(tarea);
-                    await _context.SaveChangesAsync();
+                    await _tareasService.UpdateAsync(tarea);
+
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TareaExists(tarea.IdTarea))
+                    if (!await TareaExists(tarea.IdTarea))
                     {
                         return NotFound();
                     }
@@ -130,7 +122,8 @@ namespace MantenimientoEstudiantes.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["IdEstudiante"] = new SelectList(_context.Estudiantes, "Id", "Matricula", tarea.IdEstudiante);
+            ViewData["IdEstudiante"] = new SelectList(await _estudiantesService.GetAllAsync(), "Id", "Matricula", tarea.IdEstudiante);
+
             return View(tarea);
         }
 
@@ -142,9 +135,8 @@ namespace MantenimientoEstudiantes.Controllers
                 return NotFound();
             }
 
-            var tarea = await _context.Tareas
-                .Include(t => t.Estudiante)
-                .FirstOrDefaultAsync(m => m.IdTarea == id);
+            var tarea = await _tareasService.GetByIdConEstudianteAsync(id.Value);
+
             if (tarea == null)
             {
                 return NotFound();
@@ -158,19 +150,16 @@ namespace MantenimientoEstudiantes.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tarea = await _context.Tareas.FindAsync(id);
-            if (tarea != null)
-            {
-                _context.Tareas.Remove(tarea);
-            }
+            await _tareasService.DeleteAsync(id);
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TareaExists(int id)
+        private async Task<bool> TareaExists(int id)
         {
-            return _context.Tareas.Any(e => e.IdTarea == id);
+            var tarea = await _tareasService.GetByIdAsync(id);
+            return tarea != null;
         }
+
     }
 }

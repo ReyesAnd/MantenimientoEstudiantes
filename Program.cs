@@ -1,4 +1,5 @@
 using MantenimientoEstudiantes.Data;
+using MantenimientoEstudiantes.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AplicacionDbContext>(opciones =>
     opciones.UseSqlServer(builder.Configuration.GetConnectionString("ConexionPredeterminada")));
 
+builder.Services.AddScoped<IEstudiantesService, EstudiantesService>();
+builder.Services.AddScoped<ITareasService, TareasService>();
 
 var app = builder.Build();
 
